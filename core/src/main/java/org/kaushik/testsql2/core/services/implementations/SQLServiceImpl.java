@@ -47,7 +47,7 @@ public class SQLServiceImpl implements SQLService {
 
 		ResourceResolver resourceResolver;
 		String message = "";
-		String querystmt = "SELECT * FROM [nt:base] AS s WHERE ISDESCENDANTNODE(s,'/content/mywebsite')";
+		String querystmt = "SELECT * FROM [nt:base] AS s WHERE ISDESCENDANTNODE(s,'/content/energy')";
 		// "AND CONTAINS (s.countrylongname, 'Brazil') AND CONTAINS (s.countryshortname, 'Brazil')";
 		QueryManager manager;
 		Query query;

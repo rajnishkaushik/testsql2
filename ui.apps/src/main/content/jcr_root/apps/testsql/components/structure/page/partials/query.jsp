@@ -24,7 +24,7 @@
 	Session session = resourceResolver.adaptTo(Session.class);
 	QueryManager manager = session.getWorkspace().getQueryManager();
 
-	String querystmt = "SELECT * FROM [nt:base] AS s WHERE ISDESCENDANTNODE(s,'/content/mywebsite')";
+	String querystmt = "SELECT * FROM [nt:base] AS s WHERE ISDESCENDANTNODE(s,'/content/energy')";
 	// "AND CONTAINS (s.countrylongname, 'Brazil') AND CONTAINS (s.countryshortname, 'Brazil')";
 
 	Query query = manager.createQuery(querystmt, Query.JCR_SQL2);
