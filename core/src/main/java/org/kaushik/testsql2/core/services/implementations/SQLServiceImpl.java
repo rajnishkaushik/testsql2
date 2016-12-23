@@ -11,44 +11,31 @@ import javax.jcr.Session;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.api.resource.LoginException;
-import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.resource.ResourceResolverFactory;
 import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.apache.sling.jcr.api.SlingRepository;
 import org.kaushik.testsql2.core.services.interfaces.SQLService;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 @Component
 @Service
 public class SQLServiceImpl implements SQLService {
 
-	// Inject a Sling ResourceResolverFactory
 	@Reference
-	private ResourceResolverFactory resolverFactory;
+	private SlingRepository slingRepository;
 
 	private Session session;
 
 	@Override
 	public String SearchWithSQL2() {
 
-		ResourceResolver resourceResolver;
+		// ResourceResolver resourceResolver;
 		String message = "";
 		String querystmt = "SELECT * FROM [nt:base] AS s WHERE ISDESCENDANTNODE(s,'/content/energy')";
-		// "AND CONTAINS (s.countrylongname, 'Brazil') AND CONTAINS (s.countryshortname, 'Brazil')";
+		// "AND CONTAINS (s.VAR1, 'VAR_Value') AND CONTAINS (s.VAR2,
+		// 'VAR_Value')";
 		QueryManager manager;
 		Query query;
 		QueryResult results = null;
@@ -58,81 +45,61 @@ public class SQLServiceImpl implements SQLService {
 		long counter = 0;
 
 		try {
-			resourceResolver = resolverFactory
-					.getAdministrativeResourceResolver(null);
-			session = resourceResolver.adaptTo(Session.class);
+			session = slingRepository.loginService("limited-reader-viewtrol-subservice", null);
 
-			try {
-				manager = session.getWorkspace().getQueryManager();
-				query = manager.createQuery(querystmt, Query.JCR_SQL2);
-				results = query.execute();
+			if (session != null) {
+				try {
+					manager = session.getWorkspace().getQueryManager();
+					query = manager.createQuery(querystmt, Query.JCR_SQL2);
+					results = query.execute();
 
-				nitr = results.getNodes();
+					nitr = results.getNodes();
 
-				while (nitr.hasNext()) {
-					Node node = nitr.nextNode();
-					nodeList.add(node);
-				}
+					while (nitr.hasNext()) {
+						Node node = nitr.nextNode();
+						nodeList.add(node);
+					}
 
-				counter = results.getRows().getSize();
-				message += "\t# of records returned:" + counter + "\n";
-				
-				StringWriter sw = new StringWriter();
-				JSONWriter writer = new JSONWriter(sw);
-				
-				
-				for (Node node : nodeList) {
-					message += "\t" + node.getPath() + "\n";
-					
+					counter = results.getRows().getSize();
+					message += "\t# of records returned:" + counter + "\n";
+
+					StringWriter sw = new StringWriter();
+					JSONWriter writer = new JSONWriter(sw);
+
 					try {
-						writer.object().key("path").value(node.getPath());
+						writer.object();
+						writer.key("node-counter");
+						writer.value(counter);
+
+						writer.key("nodes");
+						writer.array();
+
+						for (Node node : nodeList) {
+							message += "\t" + node.getPath() + "\n";
+							writer.object();
+							writer.key("node-path");
+							writer.value(node.getPath());
+							writer.endObject();
+						}
+						writer.endArray();
 						writer.endObject();
 					} catch (JSONException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-				}
-				
-				message = sw.toString();
 
-				try {
-					// Place the results in XML to return to client
-					DocumentBuilderFactory factory = DocumentBuilderFactory
-							.newInstance();
-					DocumentBuilder builder;
-					builder = factory.newDocumentBuilder();
+					message = sw.toString();
 
-					Document doc = builder.newDocument();
-
-					// Start building the XML to pass back to the AEM client
-					Element root = doc.createElement("results");
-					doc.appendChild(root);
-
-					/*
-					 * // iterating over the results for (Hit hit :
-					 * result.getHits()) { String path = hit.getPath(); //
-					 * Create a result element Element resultel =
-					 * doc.createElement("result"); root.appendChild(resultel);
-					 * 
-					 * Element pathel = doc.createElement("path");
-					 * pathel.appendChild(doc.createTextNode(path));
-					 * resultel.appendChild(pathel); }
-					 */
-
-					// Convert the XML to a string to return to the web
-					//message = convertToString(doc);
-
-				} catch (ParserConfigurationException e) {
+				} catch (RepositoryException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-
-			} catch (RepositoryException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
 
-		} catch (LoginException e1) {
+		} catch (javax.jcr.LoginException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (RepositoryException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
@@ -141,20 +108,6 @@ public class SQLServiceImpl implements SQLService {
 		session.logout();
 
 		return message;
-	}
-
-	private String convertToString(Document xml) {
-		try {
-			Transformer transformer = TransformerFactory.newInstance()
-					.newTransformer();
-			StreamResult result = new StreamResult(new StringWriter());
-			DOMSource source = new DOMSource(xml);
-			transformer.transform(source, result);
-			return result.getWriter().toString();
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-		return null;
 	}
 
 }

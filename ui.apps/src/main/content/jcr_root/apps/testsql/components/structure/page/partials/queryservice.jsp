@@ -5,21 +5,13 @@
 <%@ page import="org.apache.sling.jcr.api.SlingRepository"%>
 <%@ page import="org.apache.sling.commons.json.io.JSONWriter"%>
 
-<h2>Service queryservice.jsp counts # of nodes
-	under'/content/mywebsite'</h2>
+<h2>Service queryservice.jsp counts # of nodes under'/content/mywebsite'</h2>
 
 <%
-	org.kaushik.testsql2.core.services.interfaces.SQLService sqlService = sling.getService(org.kaushik.testsql2.core.services.interfaces.SQLService.class);
+	org.kaushik.testsql2.core.services.interfaces.SQLService sqlService = sling
+			.getService(org.kaushik.testsql2.core.services.interfaces.SQLService.class);
 
-	String XML = sqlService.SearchWithSQL2();
-	
-	/*
-	JSONWriter writer = new JSONWriter(response.getWriter());
-	writer.object();
-	writer.key("xml");
-	writer.value(XML);
-	    
-	writer.endObject();*/
+	String jsonString = sqlService.SearchWithSQL2();
 
-	out.println("# of records returned: </br>" + XML);
+	out.println("# of records returned: </br>" + jsonString);
 %>

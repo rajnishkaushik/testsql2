@@ -18,15 +18,16 @@
 <%@ page import="org.apache.sling.api.resource.ResourceResolver"%>
 <%@ page import="org.apache.sling.api.resource.ResourceResolverFactory"%>
 
-<h2>query.jsp counts # of nodes under '/content/mywebsite'</h2>
+<h2>--- COMMENTED OUT ---query.jsp counts # of nodes under '/content/mywebsite'</h2>
 
 <%
+
+/*
 	Session session = resourceResolver.adaptTo(Session.class);
 	QueryManager manager = session.getWorkspace().getQueryManager();
 
 	String querystmt = "SELECT * FROM [nt:base] AS s WHERE ISDESCENDANTNODE(s,'/content/energy')";
-	// "AND CONTAINS (s.countrylongname, 'Brazil') AND CONTAINS (s.countryshortname, 'Brazil')";
-
+	
 	Query query = manager.createQuery(querystmt, Query.JCR_SQL2);
 	QueryResult results = null;
 
@@ -46,4 +47,5 @@
 	for (Node node : nodeList) {
 		out.println(node.getPath() + "</br>");
 	}
+	*/
 %>
